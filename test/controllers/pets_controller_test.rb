@@ -79,9 +79,9 @@ describe PetsController do
   end 
       
   describe 'create' do
-    it 'can create a new pet' do
-      # arrange
-      pet_params = {
+     # arrange
+    let(:pet_params) {
+      {
         pet: {
           name: 'kobi',
           age: 3, 
@@ -89,6 +89,8 @@ describe PetsController do
           species: 'feline'
         }
       }
+    }
+    it 'can create a new pet' do
       # act and assert 
       # pet was addedd to db
       expect{
@@ -98,6 +100,23 @@ describe PetsController do
       # response code 201 was created
       must_respond_with :created
     end
+
+    it 'responds with bad_request status for invalid data' do
+      pet_params[:pet][:name] = nil
+
+      # pet count doesn't change
+      expect{
+        post pets_path, params: pet_params
+      }.wont_change "Pet.count"
+
+      must_respond_with :bad_request 
+
+      expect(response.header['Content-Type']).must_include 'json'
+      body = JSON.parse(response.body)
+      expect(body["errors"].keys).must_include "name"
+
+    end
+
   end
 
 end
